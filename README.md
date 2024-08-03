@@ -19,3 +19,9 @@ The project also includes visualization of the trading signals and performance m
 - yfinance
 - matplotlib
 - ta (Technical Analysis library)
+
+##Images From Execution
+
+![image](https://github.com/user-attachments/assets/1c02dae0-3a75-43ac-8c46-ed4cde7d182a)
+
+![image](https://github.com/user-attachments/assets/2c8e93c7-2364-4d83-83d3-a51484141cfa)
