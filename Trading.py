@@ -98,6 +98,17 @@ def implement_trading_strategy(data, initial_capital=10000):
 
     return data
 
+"""The trading algorithm works as follows:
+
+It starts with an initial capital (default $10,000).
+When a buy signal is generated, it invests all available capital in the stock.
+When a sell signal is generated, it sells all shares.
+The portfolio value is updated daily based on the position and stock price.
+
+This is a basic implementation and doesn't account for factors like transaction costs,
+ slippage, or fractional shares. In a real-world scenario, you'd want to include these 
+ factors and potentially add more sophisticated risk management techniques"""
+
 # Function to calculate and print strategy performance
 def print_strategy_performance(data, initial_capital):
     total_return = (data['Portfolio'].iloc[-1] - initial_capital) / initial_capital * 100
