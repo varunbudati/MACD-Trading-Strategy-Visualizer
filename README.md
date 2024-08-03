@@ -20,7 +20,7 @@ The project also includes visualization of the trading signals and performance m
 - matplotlib
 - ta (Technical Analysis library)
 
-##Images From Execution
+## Images From Execution
 
 ![image](https://github.com/user-attachments/assets/1c02dae0-3a75-43ac-8c46-ed4cde7d182a)
 
