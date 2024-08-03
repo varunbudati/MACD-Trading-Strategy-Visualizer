@@ -20,6 +20,12 @@ The project also includes visualization of the trading signals and performance m
 - matplotlib
 - ta (Technical Analysis library)
 
+## The script will output:
+- A summary of the fetched data
+- Technical indicators and signals
+- Strategy performance metrics
+- A plot showing the stock price, MACD, and buy/sell signals
+
 ## Images From Execution
 
 ![image](https://github.com/user-attachments/assets/1c02dae0-3a75-43ac-8c46-ed4cde7d182a)
