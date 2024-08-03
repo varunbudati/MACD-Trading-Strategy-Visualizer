@@ -169,6 +169,15 @@
         "documentation": {}
     },
     {
+        "label": "ta",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "ta",
+        "description": "ta",
+        "detail": "ta",
+        "documentation": {}
+    },
+    {
         "label": "BaseModel",
         "kind": 6,
         "importPath": ".venv.Scripts.pwiz",
@@ -295,38 +304,56 @@
         "documentation": {}
     },
     {
-        "label": "MACDStrategy",
-        "kind": 6,
+        "label": "get_stock_data",
+        "kind": 2,
         "importPath": "Trading",
         "description": "Trading",
-        "peekOfCode": "class MACDStrategy(bt.Strategy):\n    def __init__(self):\n        self.macd = bt.indicators.MACD(self.data)\n        self.signal_line = bt.indicators.MACD(self.data).signal\n        self.crossover = bt.indicators.CrossOver(self.macd, self.signal_line)\n    def next(self):\n        if not self.position:  # Not in the market\n            if self.crossover > 0:  # Buy signal\n                self.buy()\n        elif self.crossover < 0:  # Sell signal",
+        "peekOfCode": "def get_stock_data(ticker, start_date, end_date):\n    stock_data = yf.download(ticker, start=start_date, end=end_date)\n    stock_data.fillna(method='ffill', inplace=True)\n    return stock_data\n# STEP 2: Calculate Technical Indicators\ndef calculate_indicators(data):\n    data['MACD'] = ta.trend.macd(data['Close'])\n    data['MACD_Signal'] = ta.trend.macd_signal(data['Close'])\n    data['RSI'] = ta.momentum.rsi(data['Close'])\n    return data",
         "detail": "Trading",
         "documentation": {}
     },
     {
-        "label": "data",
-        "kind": 5,
+        "label": "calculate_indicators",
+        "kind": 2,
         "importPath": "Trading",
         "description": "Trading",
-        "peekOfCode": "data = yf.download('AAPL', start=\"2020-01-01\", end=\"2023-01-01\")\n# Step 2: Define Strategy\nclass MACDStrategy(bt.Strategy):\n    def __init__(self):\n        self.macd = bt.indicators.MACD(self.data)\n        self.signal_line = bt.indicators.MACD(self.data).signal\n        self.crossover = bt.indicators.CrossOver(self.macd, self.signal_line)\n    def next(self):\n        if not self.position:  # Not in the market\n            if self.crossover > 0:  # Buy signal",
+        "peekOfCode": "def calculate_indicators(data):\n    data['MACD'] = ta.trend.macd(data['Close'])\n    data['MACD_Signal'] = ta.trend.macd_signal(data['Close'])\n    data['RSI'] = ta.momentum.rsi(data['Close'])\n    return data\n# STEP 3: Generate Buy/Sell Signals\ndef generate_signals(data):\n    data['Buy_Signal'] = ((data['MACD'] > data['MACD_Signal']) & \n                          (data['MACD'].shift(1) <= data['MACD_Signal'].shift(1))).astype(int)\n    data['Sell_Signal'] = ((data['MACD'] < data['MACD_Signal']) & ",
         "detail": "Trading",
         "documentation": {}
     },
     {
-        "label": "cerebro",
-        "kind": 5,
+        "label": "generate_signals",
+        "kind": 2,
         "importPath": "Trading",
         "description": "Trading",
-        "peekOfCode": "cerebro = bt.Cerebro()\ncerebro.addstrategy(MACDStrategy)\ndata_feed = bt.feeds.PandasData(dataname=data)\ncerebro.adddata(data_feed)\ncerebro.run()\ncerebro.plot()",
+        "peekOfCode": "def generate_signals(data):\n    data['Buy_Signal'] = ((data['MACD'] > data['MACD_Signal']) & \n                          (data['MACD'].shift(1) <= data['MACD_Signal'].shift(1))).astype(int)\n    data['Sell_Signal'] = ((data['MACD'] < data['MACD_Signal']) & \n                           (data['MACD'].shift(1) >= data['MACD_Signal'].shift(1))).astype(int)\n    return data\n# STEP 4: Visualization\ndef plot_signals(data):\n    plt.figure(figsize=(14, 7))\n    plt.plot(data['Close'], label='Close Price', alpha=0.5)",
         "detail": "Trading",
         "documentation": {}
     },
     {
-        "label": "data_feed",
-        "kind": 5,
+        "label": "plot_signals",
+        "kind": 2,
         "importPath": "Trading",
         "description": "Trading",
-        "peekOfCode": "data_feed = bt.feeds.PandasData(dataname=data)\ncerebro.adddata(data_feed)\ncerebro.run()\ncerebro.plot()",
+        "peekOfCode": "def plot_signals(data):\n    plt.figure(figsize=(14, 7))\n    plt.plot(data['Close'], label='Close Price', alpha=0.5)\n    plt.plot(data['MACD'], label='MACD', color='red', alpha=0.5)\n    plt.plot(data['MACD_Signal'], label='Signal Line', color='blue', alpha=0.5)\n    plt.scatter(data.index, data['Close'].where(data['Buy_Signal'] == 1), label='Buy Signal', marker='^', color='green', alpha=1)\n    plt.scatter(data.index, data['Close'].where(data['Sell_Signal'] == 1), label='Sell Signal', marker='v', color='red', alpha=1)\n    plt.title('Stock Price with Buy and Sell Signals')\n    plt.legend()\n    plt.show()",
+        "detail": "Trading",
+        "documentation": {}
+    },
+    {
+        "label": "implement_trading_strategy",
+        "kind": 2,
+        "importPath": "Trading",
+        "description": "Trading",
+        "peekOfCode": "def implement_trading_strategy(data, initial_capital=10000):\n    data['Position'] = 0  # 1 for long, -1 for short, 0 for neutral\n    data['Trade'] = 0  # 1 for buy, -1 for sell\n    data['Portfolio'] = initial_capital\n    position = 0\n    for i in range(1, len(data)):\n        if data['Buy_Signal'].iloc[i] == 1 and position == 0:\n            position = 1\n            data['Position'].iloc[i] = 1\n            data['Trade'].iloc[i] = 1",
+        "detail": "Trading",
+        "documentation": {}
+    },
+    {
+        "label": "print_strategy_performance",
+        "kind": 2,
+        "importPath": "Trading",
+        "description": "Trading",
+        "peekOfCode": "def print_strategy_performance(data, initial_capital):\n    total_return = (data['Portfolio'].iloc[-1] - initial_capital) / initial_capital * 100\n    buy_hold_return = (data['Close'].iloc[-1] - data['Close'].iloc[0]) / data['Close'].iloc[0] * 100\n    print(f\"Strategy Total Return: {total_return:.2f}%\")\n    print(f\"Buy and Hold Return: {buy_hold_return:.2f}%\")\n# Update the main execution block\nif __name__ == \"__main__\":\n    ticker = \"AAPL\"\n    start_date = \"2020-01-01\"\n    end_date = \"2023-01-01\"",
         "detail": "Trading",
         "documentation": {}
     }
