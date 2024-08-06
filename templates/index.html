@@ -44,6 +44,7 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            position: relative;
             background-color: var(--container-bg);
             padding: 20px;
             border-radius: 5px;
@@ -216,14 +217,14 @@
 
         .social-links {
             position: absolute;
-            top: 20px;
+            top: 35px;
             right: 20px;
             display: flex;
             align-items: center;
         }
 
         .social-link {
-            margin-left: 10px;
+            margin-left: 20px; 
             text-decoration: none;
             color: var(--text-color);
             display: flex;
@@ -232,25 +233,34 @@
         }
 
         .social-link img {
-            width: 30px;
-            height: 30px;
+            width: 50px;  
+            height: 50px;  
         }
 
         .social-link span {
             margin-top: 5px;
-            font-size: 12px;
+            font-size: 14px;  
+        }
+
+        .contact-header {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 18px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="contact-header"><u>Contact Me!</u></div>
         <div class="social-links">
             <a href="https://github.com/varunbudati" class="social-link" target="_blank">
-                <img src="./images/varun-pfp.jpg" alt="GitHub">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub">
                 <span>GitHub</span>
             </a>
             <a href="https://varunbudati.github.io/" class="social-link" target="_blank">
-                <img src="./images/varun.ico" alt="Portfolio">
+                <img src="https://varunbudati.github.io/assets/images/varun-budati.jpeg" alt="Portfolio"> 
                 <span>Portfolio</span>
             </a>
         </div>
