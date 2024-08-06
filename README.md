@@ -21,13 +21,13 @@ This project is a web-based stock trading dashboard that implements a momentum t
 ## Setup and Installation
 
 1. Clone the repository:
-git clone https://github.com/varunbudati/MACD-Trading-Strategy-Visualizer.git
-cd MACD-Trading-Strategy-Visualizer
-2. Install required Python packages:
+2. 		git clone https://github.com/varunbudati/MACD-Trading-Strategy-Visualizer.git
+3. 		cd MACD-Trading-Strategy-Visualizer
+4. Install required Python packages:
 pip install flask pandas numpy yfinance ta matplotlib
-3. Run the Flask application:
+5. Run the Flask application:
 python app.py
-4. Open a web browser and navigate to `http://localhost:5000` to access the dashboard.
+6. Open a web browser and navigate to `http://localhost:5000` to access the dashboard.
 
 ## Usage
 
