@@ -1,4 +1,4 @@
-# Stock Trading Dashboard
+# MACD Trading Strategy Visualizer
 
 This project is a web-based stock trading dashboard that implements a momentum trading strategy using technical indicators. It allows users to analyze stock data, visualize trading signals, and simulate portfolio performance.
 
