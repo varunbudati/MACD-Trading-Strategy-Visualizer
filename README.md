@@ -61,7 +61,8 @@ This project is for educational purposes only. The implemented trading strategy 
 
 ## Images From Execution
 
-![image](https://github.com/user-attachments/assets/6dd329e2-db6d-44ea-a664-dd89cd123d7f)
+![image](https://github.com/user-attachments/assets/e78ba219-f89e-4f36-a841-904da8397e08)
+
 
 
 ![image](https://github.com/user-attachments/assets/1c02dae0-3a75-43ac-8c46-ed4cde7d182a)
