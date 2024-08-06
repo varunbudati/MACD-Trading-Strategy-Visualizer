@@ -7,6 +7,51 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            #preset-tickers {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .ticker-logo {
+                width: 30px;
+                height: 30px;
+            }
+
+            form {
+                flex-direction: column;
+            }
+
+            input, button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            #chart > div {
+                height: 300px;
+            }
+
+            .social-links {
+                position: static;
+                justify-content: center;
+                margin-top: 20px;
+            }
+
+            .contact-header {
+                position: static;
+                text-align: center;
+                margin-bottom: 10px;
+            }
+        }
         :root {
             --bg-color: #f0f0f0;
             --container-bg: white;
@@ -328,6 +373,19 @@
                 'JNJ': 'https://upload.wikimedia.org/wikipedia/commons/c/cd/Johnson_and_Johnson_Logo.svg',
                 'V': 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg'
             };
+
+            function updateLayout() {
+                if (window.innerWidth <= 768) {
+                    $('.social-links').insertAfter('h1');
+                    $('.contact-header').insertBefore('.social-links');
+                } else {
+                    $('.social-links').appendTo('.container');
+                    $('.contact-header').prependTo('.container');
+                }
+            }
+
+            $(window).on('resize', updateLayout);
+            updateLayout();
 
             function updateSelectedTickers() {
                 $('#selected-tickers').empty();
