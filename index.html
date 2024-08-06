@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Trading Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f0f0f0;
+            --container-bg: white;
+            --text-color: #333;
+            --button-bg: #4CAF50;
+            --button-hover: #45a049;
+            --button-text: white;
+            --input-bg: white;
+            --selected-ticker-bg: #f1f1f1;
+            --remove-button-bg: #f44336;
+            --remove-button-hover: #d32f2f;
+        }
+
+        .dark-theme {
+            --bg-color: #333;
+            --container-bg: #444;
+            --text-color: #f0f0f0;
+            --button-bg: #2c662d;
+            --button-hover: #204a21;
+            --button-text: #f0f0f0;
+            --input-bg: #555;
+            --selected-ticker-bg: #666;
+            --remove-button-bg: #a93226;
+            --remove-button-hover: #7e241b;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            background-color: var(--container-bg);
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--text-color);
+        }
+        button {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: var(--button-hover);
+        }
+
+        #preset-tickers button, #add-ticker {
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            cursor: pointer;
+        }
+
+        #preset-tickers button:hover, #add-ticker:hover {
+            background-color: var(--button-hover);
+        }
+
+        #selected-tickers span {
+            display: inline-block;
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: var(--selected-ticker-bg);
+            border-radius: 5px;
+        }
+
+        #selected-tickers button {
+            margin-left: 5px;
+            background-color: var(--remove-button-bg);
+            color: var(--button-text);
+            border: none;
+            cursor: pointer;
+        }
+
+        #selected-tickers button:hover {
+            background-color: var(--remove-button-hover);
+        }
+
+        #chart > div {
+            width: 100%;
+            height: 500px;
+            margin-bottom: 20px;
+        }
+
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .theme-switch {
+            display: inline-block;
+            height: 34px;
+            position: relative;
+            width: 60px;
+        }
+        .theme-switch input {
+            display:none;
+        }
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+        }
+        .slider:before {
+            background-color: #fff;
+            bottom: 4px;
+            content: "";
+            height: 26px;
+            left: 4px;
+            position: absolute;
+            transition: .4s;
+            width: 26px;
+        }
+        input:checked + .slider {
+            background-color: #66bb6a;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .slider.round {
+            border-radius: 34px;
+        }
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        .button-loading {
+            position: relative;
+            color: transparent !important;
+        }
+
+        .button-loading::after {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            border: 4px solid transparent;
+            border-top-color: var(--button-text);
+            border-radius: 50%;
+            animation: button-loading-spinner 1s ease infinite;
+        }
+
+        @keyframes button-loading-spinner {
+            from {
+                transform: rotate(0turn);
+            }
+
+            to {
+                transform: rotate(1turn);
+            }
+        }
+
+        .ticker-logo {
+            width: 40px;
+            height: 40px;
+            margin: 5px;
+            cursor: pointer;
+            object-fit: contain;
+            background-color: white;
+            border-radius: 5px;
+            padding: 2px;
+        }
+
+        button, input {
+            border-radius: 20px;
+        }
+
+        #chart {
+            background-color: var(--container-bg);
+            border: 1px solid var(--text-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .social-links {
+            position: absolute;
+            top: 35px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .social-link {
+            margin-left: 20px; 
+            text-decoration: none;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .social-link img {
+            width: 50px;  
+            height: 50px;  
+        }
+
+        .social-link span {
+            margin-top: 5px;
+            font-size: 14px;  
+        }
+
+        .contact-header {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="contact-header"><u>Contact Me!</u></div>
+        <div class="social-links">
+            <a href="https://github.com/varunbudati" class="social-link" target="_blank">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub">
+                <span>GitHub</span>
+            </a>
+            <a href="https://varunbudati.github.io/" class="social-link" target="_blank">
+                <img src="https://varunbudati.github.io/assets/images/varun-budati.jpeg" alt="Portfolio"> 
+                <span>Portfolio</span>
+            </a>
+        </div>
+        <div class="theme-switch-wrapper">
+            <label class="theme-switch" for="checkbox">
+                <input type="checkbox" id="checkbox" />
+                <div class="slider round"></div>
+            </label>
+            <em>Toggle Dark Mode</em>
+        </div>
+        <h1>Stock Trading Dashboard</h1>
+        <div id="preset-tickers">
+            <!-- Buttons will be added here dynamically -->
+        </div>
+        <div>
+            <input type="text" id="custom-ticker" placeholder="Enter custom ticker">
+            <button id="add-ticker">Add</button>
+        </div>
+        <div id="selected-tickers">
+            <!-- Selected tickers will be displayed here -->
+        </div>
+        <form id="stock-form">
+            <input type="date" id="start-date" required>
+            <input type="date" id="end-date" required>
+            <button type="submit">Get Data</button>
+        </form>
+        <div id="chart"></div>
+        
+    </div>
+    <script>
+        $(document).ready(function() {
+            var selectedTickers = [];
+            var presetTickers = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'FB', 'TSLA', 'NVDA', 'JPM', 'JNJ', 'V'];
+
+            // Theme switcher
+            const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+            function switchTheme(e) {
+                if (e.target.checked) {
+                    document.body.classList.add('dark-theme');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.body.classList.remove('dark-theme');
+                    localStorage.setItem('theme', 'light');
+                }    
+            }
+            toggleSwitch.addEventListener('change', switchTheme, false);
+
+            const currentTheme = localStorage.getItem('theme');
+            if (currentTheme) {
+                document.body.classList.add(currentTheme);
+                if (currentTheme === 'dark') {
+                    toggleSwitch.checked = true;
+                }
+            }
+            
+            const tickerLogos = {
+                'AAPL': 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg',
+                'GOOGL': 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
+                'MSFT': 'https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg',
+                'AMZN': 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg',
+                'FB': 'https://upload.wikimedia.org/wikipedia/en/0/04/Facebook_f_logo_%282021%29.svg',
+                'TSLA': 'https://upload.wikimedia.org/wikipedia/commons/e/e8/Tesla_logo.png',
+                'NVDA': 'https://upload.wikimedia.org/wikipedia/sco/2/21/Nvidia_logo.svg',
+                'JPM': 'https://upload.wikimedia.org/wikipedia/commons/a/af/J_P_Morgan_Logo_2008_1.svg',
+                'JNJ': 'https://upload.wikimedia.org/wikipedia/commons/c/cd/Johnson_and_Johnson_Logo.svg',
+                'V': 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg'
+            };
+
+            function updateSelectedTickers() {
+                $('#selected-tickers').empty();
+                selectedTickers.forEach(function(ticker) {
+                    var tickerSpan = $('<span>').text(ticker);
+                    var removeButton = $('<button>').text('X').click(function() {
+                        selectedTickers = selectedTickers.filter(t => t !== ticker);
+                        updateSelectedTickers();
+                    });
+                    $('#selected-tickers').append(tickerSpan).append(removeButton);
+                });
+            }
+
+            // Add preset ticker logos
+            presetTickers.forEach(function(ticker) {
+                var logo = $('<img>').attr({
+                    src: tickerLogos[ticker] || `https://ui-avatars.com/api/?name=${ticker}&background=random`,
+                    alt: ticker,
+                    class: 'ticker-logo'
+                }).click(function() {
+                    if (!selectedTickers.includes(ticker)) {
+                        selectedTickers.push(ticker);
+                        updateSelectedTickers();
+                    }
+                });
+                $('#preset-tickers').append(logo);
+            });
+
+            // Add custom ticker
+            $('#add-ticker').click(function() {
+                var customTicker = $('#custom-ticker').val().toUpperCase();
+                if (customTicker && !selectedTickers.includes(customTicker)) {
+                    selectedTickers.push(customTicker);
+                    updateSelectedTickers();
+                    $('#custom-ticker').val('');
+                }
+            });
+
+            $('#stock-form').submit(function(e) {
+                e.preventDefault();
+                if (selectedTickers.length === 0) {
+                    alert('Please select at least one ticker.');
+                    return;
+                }
+                var startDate = $('#start-date').val();
+                var endDate = $('#end-date').val();
+
+                // Get the submit button
+                var $submitButton = $(this).find('button[type="submit"]');
+                // Store the original text
+                var originalText = $submitButton.text();
+                // Add loading class and change text
+                $submitButton.addClass('button-loading').text('Loading...');
+
+                $.ajax({
+                    url: '/get_stock_data',
+                    method: 'POST',
+                    data: {
+                        tickers: JSON.stringify(selectedTickers),
+                        start_date: startDate,
+                        end_date: endDate
+                    },
+                    success: function(response) {
+                        console.log("Received response:", response);
+                        if (response.error) {
+                            console.error("Server error:", response.error);
+                            alert("An error occurred: " + response.error);
+                        } else {
+                            // Clear previous charts
+                            $('#chart').empty();
+
+                            // Create a chart for each ticker
+                            Object.keys(response).forEach(function(ticker) {
+                                var chartDiv = $('<div>').attr('id', 'chart-' + ticker);
+                                $('#chart').append(chartDiv);
+
+                                var data = response[ticker];
+
+                                var trace1 = {
+                                    x: data.dates,
+                                    y: data.close.map(v => v === null ? NaN : v),
+                                    type: 'scatter',
+                                    mode: 'lines',
+                                    name: 'Close Price'
+                                };
+                                var trace2 = {
+                                    x: data.dates,
+                                    y: data.macd.map(v => v === null ? NaN : v),
+                                    type: 'scatter',
+                                    mode: 'lines',
+                                    name: 'MACD'
+                                };
+                                var trace3 = {
+                                    x: data.dates,
+                                    y: data.signal.map(v => v === null ? NaN : v),
+                                    type: 'scatter',
+                                    mode: 'lines',
+                                    name: 'Signal Line'
+                                };
+                                var trace4 = {
+                                    x: data.buy_signals,
+                                    y: data.buy_signals.map(date => data.close[data.dates.indexOf(date)]),
+                                    type: 'scatter',
+                                    mode: 'markers',
+                                    name: 'Buy Signals',
+                                    marker: {color: 'green', size: 10, symbol: 'triangle-up'}
+                                };
+                                var trace5 = {
+                                    x: data.sell_signals,
+                                    y: data.sell_signals.map(date => data.close[data.dates.indexOf(date)]),
+                                    type: 'scatter',
+                                    mode: 'markers',
+                                    name: 'Sell Signals',
+                                    marker: {color: 'red', size: 10, symbol: 'triangle-down'}
+                                };
+                                var trace6 = {
+                                    x: data.dates,
+                                    y: data.portfolio.map(v => v === null ? NaN : v),
+                                    type: 'scatter',
+                                    mode: 'lines',
+                                    name: 'Portfolio Value',
+                                    yaxis: 'y2'
+                                };
+                                var layout = {
+                                    title: ticker + ' - Stock Price, MACD, and Portfolio Value',
+                                    yaxis: {title: 'Price'},
+                                    yaxis2: {
+                                        title: 'Portfolio Value',
+                                        overlaying: 'y',
+                                        side: 'right'
+                                    },
+                                    paper_bgcolor: 'rgba(0,0,0,0)',
+                                    plot_bgcolor: 'rgba(0,0,0,0)',
+                                    font: {
+                                        color: document.body.classList.contains('dark-theme') ? '#f0f0f0' : '#333'
+                                    }
+                                };
+                                var plotData = [trace1, trace2, trace3, trace4, trace5, trace6];
+                                Plotly.newPlot('chart-' + ticker, plotData, layout);
+                            });
+
+                            console.log("Charts should be displayed now");
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error("AJAX error:");
+                        console.error("Status:", textStatus);
+                        console.error("Error:", errorThrown);
+                        console.error("Response Text:", jqXHR.responseText);
+                        console.error("Status Code:", jqXHR.status);
+                        alert("An error occurred while fetching data. Please check the console for more information.");
+                    },
+                    complete: function() {
+                        $submitButton.removeClass('button-loading').text(originalText);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
