@@ -42,7 +42,6 @@ python app.py
 - `app.py`: Flask application serving as the backend
 - `Trading.py`: Contains core functions for data processing and strategy implementation
 - `index.html`: Frontend HTML template for the dashboard
-- `static/`: Directory for static files (CSS, JavaScript) - not provided in the snippets
 
 ## Contributing
 
