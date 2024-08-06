@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Trading Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #preset-tickers button, #add-ticker {
+        margin: 5px;
+        padding: 5px 10px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        cursor: pointer;
+        }
+
+        #preset-tickers button:hover, #add-ticker:hover {
+            background-color: #45a049;
+        }
+
+        #selected-tickers span {
+            display: inline-block;
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+        }
+
+        #selected-tickers button {
+            margin-left: 5px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #selected-tickers button:hover {
+            background-color: #d32f2f;
+        }
+
+        #chart > div {
+            width: 100%;
+            height: 500px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stock Trading Dashboard</h1>
+        <div id="preset-tickers">
+            <!-- Buttons will be added here dynamically -->
+        </div>
+        <div>
+            <input type="text" id="custom-ticker" placeholder="Enter custom ticker">
+            <button id="add-ticker">Add</button>
+        </div>
+        <div id="selected-tickers">
+            <!-- Selected tickers will be displayed here -->
+        </div>
+        <form id="stock-form">
+            <input type="date" id="start-date" required>
+            <input type="date" id="end-date" required>
+            <button type="submit">Get Data</button>
+        </form>
+        <div id="chart"></div>
+        
+    </div>
+    <script>
+        $(document).ready(function() {
+    var selectedTickers = [];
+    var presetTickers = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'FB', 'TSLA', 'NVDA', 'JPM', 'JNJ', 'V'];
+
+        function updateSelectedTickers() {
+        $('#selected-tickers').empty();
+        selectedTickers.forEach(function(ticker) {
+            var tickerSpan = $('<span>').text(ticker);
+            var removeButton = $('<button>').text('X').click(function() {
+                selectedTickers = selectedTickers.filter(t => t !== ticker);
+                updateSelectedTickers();
+            });
+            $('#selected-tickers').append(tickerSpan).append(removeButton);
+        });
+    }
+
+    // Add preset ticker buttons
+    presetTickers.forEach(function(ticker) {
+        var button = $('<button>').text(ticker).click(function() {
+            if (!selectedTickers.includes(ticker)) {
+                selectedTickers.push(ticker);
+                updateSelectedTickers();
+            }
+        });
+        $('#preset-tickers').append(button);
+    });
+
+    // Add custom ticker
+    $('#add-ticker').click(function() {
+            var customTicker = $('#custom-ticker').val().toUpperCase();
+            if (customTicker && !selectedTickers.includes(customTicker)) {
+                selectedTickers.push(customTicker);
+                updateSelectedTickers();
+                $('#custom-ticker').val('');
+            }
+        });
+
+        $('#stock-form').submit(function(e) {
+            e.preventDefault();
+            if (selectedTickers.length === 0) {
+                alert('Please select at least one ticker.');
+                return;
+            }
+            var startDate = $('#start-date').val();
+            var endDate = $('#end-date').val();
+
+            $.ajax({
+                url: '/get_stock_data',
+                method: 'POST',
+                data: {
+                    tickers: JSON.stringify(selectedTickers),
+                    start_date: startDate,
+                    end_date: endDate
+                },
+                success: function(response) {
+                    console.log("Received response:", response);
+                    if (response.error) {
+                        console.error("Server error:", response.error);
+                        alert("An error occurred: " + response.error);
+                    } else {
+                        // Clear previous charts
+                        $('#chart').empty();
+
+                        // Create a chart for each ticker
+                        Object.keys(response).forEach(function(ticker) {
+                            var chartDiv = $('<div>').attr('id', 'chart-' + ticker);
+                            $('#chart').append(chartDiv);
+
+                            var data = response[ticker];
+
+                            var trace1 = {
+                                x: data.dates,
+                                y: data.close.map(v => v === null ? NaN : v),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: 'Close Price'
+                            };
+                            var trace2 = {
+                                x: data.dates,
+                                y: data.macd.map(v => v === null ? NaN : v),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: 'MACD'
+                            };
+                            var trace3 = {
+                                x: data.dates,
+                                y: data.signal.map(v => v === null ? NaN : v),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: 'Signal Line'
+                            };
+                            var trace4 = {
+                                x: data.buy_signals,
+                                y: data.buy_signals.map(date => data.close[data.dates.indexOf(date)]),
+                                type: 'scatter',
+                                mode: 'markers',
+                                name: 'Buy Signals',
+                                marker: {color: 'green', size: 10, symbol: 'triangle-up'}
+                            };
+                            var trace5 = {
+                                x: data.sell_signals,
+                                y: data.sell_signals.map(date => data.close[data.dates.indexOf(date)]),
+                                type: 'scatter',
+                                mode: 'markers',
+                                name: 'Sell Signals',
+                                marker: {color: 'red', size: 10, symbol: 'triangle-down'}
+                            };
+                            var trace6 = {
+                                x: data.dates,
+                                y: data.portfolio.map(v => v === null ? NaN : v),
+                                type: 'scatter',
+                                mode: 'lines',
+                                name: 'Portfolio Value',
+                                yaxis: 'y2'
+                            };
+                            var layout = {
+                                title: ticker + ' - Stock Price, MACD, and Portfolio Value',
+                                yaxis: {title: 'Price'},
+                                yaxis2: {
+                                    title: 'Portfolio Value',
+                                    overlaying: 'y',
+                                    side: 'right'
+                                }
+                            };
+                            var plotData = [trace1, trace2, trace3, trace4, trace5, trace6];
+                            Plotly.newPlot('chart-' + ticker, plotData, layout);
+                        });
+
+                        console.log("Charts should be displayed now");
+                    }
+                },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("AJAX error:");
+                console.error("Status:", textStatus);
+                console.error("Error:", errorThrown);
+                console.error("Response Text:", jqXHR.responseText);
+                console.error("Status Code:", jqXHR.status);
+                alert("An error occurred while fetching data. Please check the console for more information.");
+            }
+        });
+    });
+});
+    </script>
+</body>
+</html>

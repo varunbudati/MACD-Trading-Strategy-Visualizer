@@ -67,6 +67,7 @@ if __name__ == "__main__":
 
 # Function for the trading algorithm
 def implement_trading_strategy(data, initial_capital=10000):
+    # Create new columns with default values
     data['Position'] = 0  # 1 for long, -1 for short, 0 for neutral
     data['Trade'] = 0  # 1 for buy, -1 for sell
     data['Portfolio'] = initial_capital
@@ -75,26 +76,26 @@ def implement_trading_strategy(data, initial_capital=10000):
     for i in range(1, len(data)):
         if data['Buy_Signal'].iloc[i] == 1 and position == 0:
             position = 1
-            data['Position'].iloc[i] = 1
-            data['Trade'].iloc[i] = 1
+            data.loc[data.index[i], 'Position'] = 1
+            data.loc[data.index[i], 'Trade'] = 1
         elif data['Sell_Signal'].iloc[i] == 1 and position == 1:
             position = 0
-            data['Position'].iloc[i] = 0
-            data['Trade'].iloc[i] = -1
+            data.loc[data.index[i], 'Position'] = 0
+            data.loc[data.index[i], 'Trade'] = -1
         else:
-            data['Position'].iloc[i] = position
+            data.loc[data.index[i], 'Position'] = position
 
         if data['Trade'].iloc[i] == 1:
             shares_bought = data['Portfolio'].iloc[i-1] // data['Close'].iloc[i]
-            data['Portfolio'].iloc[i] = data['Portfolio'].iloc[i-1] - (shares_bought * data['Close'].iloc[i])
+            data.loc[data.index[i], 'Portfolio'] = data['Portfolio'].iloc[i-1] - (shares_bought * data['Close'].iloc[i])
         elif data['Trade'].iloc[i] == -1:
             shares_sold = data['Portfolio'].iloc[i-1] // data['Close'].iloc[i-1]
-            data['Portfolio'].iloc[i] = data['Portfolio'].iloc[i-1] + (shares_sold * data['Close'].iloc[i])
+            data.loc[data.index[i], 'Portfolio'] = data['Portfolio'].iloc[i-1] + (shares_sold * data['Close'].iloc[i])
         else:
             if position == 1:
-                data['Portfolio'].iloc[i] = data['Portfolio'].iloc[i-1] * (data['Close'].iloc[i] / data['Close'].iloc[i-1])
+                data.loc[data.index[i], 'Portfolio'] = data['Portfolio'].iloc[i-1] * (data['Close'].iloc[i] / data['Close'].iloc[i-1])
             else:
-                data['Portfolio'].iloc[i] = data['Portfolio'].iloc[i-1]
+                data.loc[data.index[i], 'Portfolio'] = data['Portfolio'].iloc[i-1]
 
     return data
 
