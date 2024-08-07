@@ -104,11 +104,14 @@ def main():
 
             # Display strategy performance
 
-            # In your main function, replace the strategy performance calculation with:
+            
             initial_capital = 10000
+            buy_hold_return = (data['Close'].iloc[-1] - data['Close'].iloc[0]) / data['Close'].iloc[0] * 100
+
+
             final_portfolio_value = data['Portfolio'].iloc[-1]
             total_return = ((final_portfolio_value - initial_capital) / initial_capital) * 100
-
+            
             st.subheader('Strategy Performance')
             col1, col2 = st.columns(2)
             col1.metric("Strategy Total Return", f"{total_return:.2f}%")
