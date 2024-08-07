@@ -113,10 +113,9 @@ def plot_stock_data(data, ticker, initial_investment):
     return fig
 
 def main():
+    st.title('Stock Trading Dashboard')
 
-    st.title('MACD Trading Strategy Visualizer')
-
-    
+    # Sidebar
     st.sidebar.header('User Input')
     tickers = st.sidebar.text_input('Enter stock tickers (comma-separated)', 'AAPL,GOOGL,MSFT').split(',')
     start_date = st.sidebar.date_input('Start Date', pd.to_datetime('2020-01-01'))
@@ -124,19 +123,22 @@ def main():
     
     initial_investment = st.sidebar.number_input('Initial Investment ($)', min_value=1000, max_value=1000000, value=10000, step=1000)
 
+    # Add "Made By" section to sidebar
     st.sidebar.header('Made By:')
     col1, col2, col3 = st.sidebar.columns(3)
 
-    github_img = Image.open('https://en.wikipedia.org/wiki/GitHub#/media/File:GitHub_Invertocat_Logo.svg').resize((50, 50))
-    portfolio_img = Image.open('images/varun-pfp.jpg').resize((50, 50))
-    linkedin_img = Image.open('images/varun-pfp.jpg').resize((50, 50))
+    # Load and resize images
+    github_img = Image.open('images/github.png').resize((50, 50))
+    portfolio_img = Image.open('images/portfolio.png').resize((50, 50))
+    linkedin_img = Image.open('images/linkedin.png').resize((50, 50))
 
+    # Add buttons with images
     if col1.image(github_img):
-        st.sidebar.markdown("[GitHub](https://github.com/varunbudati)")
+        st.sidebar.markdown("[GitHub](https://github.com/yourusername)")
     if col2.image(portfolio_img):
-        st.sidebar.markdown("[Portfolio](https://varunbudati.github.io/)")
+        st.sidebar.markdown("[Portfolio](https://yourportfolio.com)")
     if col3.image(linkedin_img):
-        st.sidebar.markdown("[LinkedIn](https://www.linkedin.com/in/varun-budati/)")
+        st.sidebar.markdown("[LinkedIn](https://www.linkedin.com/in/yourprofile)")
 
     if st.sidebar.button('Analyze Stocks'):
         for ticker in tickers:
