@@ -34,6 +34,8 @@ def implement_trading_strategy(data, initial_capital=10000.0):
     df['Position'] = 0
     df['Trade'] = 0
     df['Portfolio'] = float(initial_capital)
+    df['Shares'] = 0
+    df['Cash'] = float(initial_capital)
 
     position = 0
     for i in range(1, len(df)):
@@ -41,24 +43,22 @@ def implement_trading_strategy(data, initial_capital=10000.0):
             position = 1
             df.loc[df.index[i], 'Position'] = 1
             df.loc[df.index[i], 'Trade'] = 1
+            shares_bought = df['Cash'].iloc[i-1] // df['Close'].iloc[i]
+            df.loc[df.index[i], 'Shares'] = shares_bought
+            df.loc[df.index[i], 'Cash'] = df['Cash'].iloc[i-1] - (shares_bought * df['Close'].iloc[i])
         elif df['Sell_Signal'].iloc[i] == 1 and position == 1:
             position = 0
             df.loc[df.index[i], 'Position'] = 0
             df.loc[df.index[i], 'Trade'] = -1
+            df.loc[df.index[i], 'Cash'] = df['Cash'].iloc[i-1] + (df['Shares'].iloc[i-1] * df['Close'].iloc[i])
+            df.loc[df.index[i], 'Shares'] = 0
         else:
             df.loc[df.index[i], 'Position'] = position
+            df.loc[df.index[i], 'Shares'] = df['Shares'].iloc[i-1]
+            df.loc[df.index[i], 'Cash'] = df['Cash'].iloc[i-1]
 
-        if df['Trade'].iloc[i] == 1:
-            shares_bought = df['Portfolio'].iloc[i-1] // df['Close'].iloc[i]
-            df.loc[df.index[i], 'Portfolio'] = df['Portfolio'].iloc[i-1] - (shares_bought * df['Close'].iloc[i])
-        elif df['Trade'].iloc[i] == -1:
-            shares_sold = df['Portfolio'].iloc[i-1] // df['Close'].iloc[i-1]
-            df.loc[df.index[i], 'Portfolio'] = df['Portfolio'].iloc[i-1] + (shares_sold * df['Close'].iloc[i])
-        else:
-            if position == 1:
-                df.loc[df.index[i], 'Portfolio'] = df['Portfolio'].iloc[i-1] * (df['Close'].iloc[i] / df['Close'].iloc[i-1])
-            else:
-                df.loc[df.index[i], 'Portfolio'] = df['Portfolio'].iloc[i-1]
+        # Update portfolio value
+        df.loc[df.index[i], 'Portfolio'] = df['Cash'].iloc[i] + (df['Shares'].iloc[i] * df['Close'].iloc[i])
 
     return df
 
@@ -115,7 +115,7 @@ def main():
 
             # Display recent data
             st.subheader('Recent Data')
-            st.dataframe(data[['Close', 'MACD', 'MACD_Signal', 'RSI', 'Portfolio']].tail())
+            st.dataframe(data[['Close', 'MACD', 'MACD_Signal', 'RSI', 'Buy_Signal', 'Sell_Signal', 'Portfolio']].tail())
 
 if __name__ == '__main__':
     main()
