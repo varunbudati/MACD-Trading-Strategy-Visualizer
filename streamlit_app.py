@@ -114,28 +114,6 @@ def plot_stock_data(data, ticker, initial_investment):
 def main():
     st.title('Stock Trading Dashboard')
 
-    st.markdown("""
-    <style>
-    .icon-button {
-        display: inline-block;
-        padding: 10px;
-        border-radius: 50%;
-        background-color: #f0f2f6;
-        color: #31333F;
-        font-size: 24px;
-        width: 50px;
-        height: 50px;
-        text-align: center;
-        text-decoration: none;
-        margin: 5px;
-        cursor: pointer;
-    }
-    .icon-button:hover {
-        background-color: #e0e2e6;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
     # Sidebar
     st.sidebar.header('User Input')
     tickers = st.sidebar.text_input('Enter stock tickers (comma-separated)', 'AAPL,GOOGL,MSFT').split(',')
@@ -158,7 +136,6 @@ def main():
         st.markdown('<a href="https://www.linkedin.com/in/yourprofile" target="_blank" class="icon-button">🔗</a>', unsafe_allow_html=True)
 
     
-
     if st.sidebar.button('Analyze Stocks'):
         for ticker in tickers:
             ticker = ticker.strip().upper()
