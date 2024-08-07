@@ -128,9 +128,9 @@ def main():
     col1, col2, col3 = st.sidebar.columns(3)
 
     # Load and resize images
-    github_img = Image.open('images/github.png').resize((50, 50))
-    portfolio_img = Image.open('images/portfolio.png').resize((50, 50))
-    linkedin_img = Image.open('images/linkedin.png').resize((50, 50))
+    github_img = Image.open('images/varun.png').resize((50, 50))
+    portfolio_img = Image.open('images/varun-pfp.jpg').resize((50, 50))
+    linkedin_img = Image.open('images/varun-pfp.jpg').resize((50, 50))
 
     # Add buttons with images
     if col1.image(github_img):
