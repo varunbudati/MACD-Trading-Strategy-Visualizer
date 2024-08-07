@@ -5,4 +5,3 @@ numpy
 ta
 plotly
 Image
-add_logo

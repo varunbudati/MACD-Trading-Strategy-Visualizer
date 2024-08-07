@@ -6,7 +6,6 @@ import ta
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from PIL import Image
-from streamlit_extras.app_logo import add_logo
 
 def get_stock_data(ticker, start_date, end_date):
     try:
@@ -115,6 +114,28 @@ def plot_stock_data(data, ticker, initial_investment):
 def main():
     st.title('Stock Trading Dashboard')
 
+    st.markdown("""
+    <style>
+    .icon-button {
+        display: inline-block;
+        padding: 10px;
+        border-radius: 50%;
+        background-color: #f0f2f6;
+        color: #31333F;
+        font-size: 24px;
+        width: 50px;
+        height: 50px;
+        text-align: center;
+        text-decoration: none;
+        margin: 5px;
+        cursor: pointer;
+    }
+    .icon-button:hover {
+        background-color: #e0e2e6;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     # Sidebar
     st.sidebar.header('User Input')
     tickers = st.sidebar.text_input('Enter stock tickers (comma-separated)', 'AAPL,GOOGL,MSFT').split(',')
@@ -128,19 +149,15 @@ def main():
     col1, col2, col3 = st.sidebar.columns(3)
 
     with col1:
-        add_logo("https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png", height=50)
-        if st.button('GitHub'):
-            st.markdown("[GitHub](https://github.com/varunbudati/)")
+        st.markdown('<a href="https://github.com/yourusername" target="_blank" class="icon-button">🐙</a>', unsafe_allow_html=True)
     
     with col2:
-        add_logo("images/varun.png", height=50)
-        if st.button('Portfolio'):
-            st.markdown("[Portfolio](https://varunbudati.github.io/)")
+        st.markdown('<a href="https://yourportfolio.com" target="_blank" class="icon-button">💼</a>', unsafe_allow_html=True)
     
     with col3:
-        add_logo("https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg", height=50)
-        if st.button('LinkedIn'):
-            st.markdown("[LinkedIn](https://www.linkedin.com/in/varun-budati)")
+        st.markdown('<a href="https://www.linkedin.com/in/yourprofile" target="_blank" class="icon-button">🔗</a>', unsafe_allow_html=True)
+
+    
 
     if st.sidebar.button('Analyze Stocks'):
         for ticker in tickers:
