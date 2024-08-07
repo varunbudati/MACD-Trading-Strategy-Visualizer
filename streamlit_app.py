@@ -175,8 +175,7 @@ def main():
     
     # Portfolio icon (using a simple document icon as an example)
     portfolio_icon = """
-    <svg xmlns="https://varunbudati.github.io/assets/images/icon.ico" viewBox="0 0 24 24">
-    </svg>
+    <img src="https://varunbudati.github.io/assets/images/icon.ico" alt="Portfolio Icon" style="width: 24px; height: 24px;">
     """
     with col2:
         st.markdown(f'<a href="https://varunbudati.github.io/" target="_blank" class="icon-button">{portfolio_icon}</a>', unsafe_allow_html=True)
