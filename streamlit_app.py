@@ -127,9 +127,9 @@ def main():
     st.sidebar.header('Made By:')
     col1, col2, col3 = st.sidebar.columns(3)
 
-    github_img = Image.open('images/github.png').resize((50, 50))
-    portfolio_img = Image.open('https://varunbudati.github.io/assets/images/varun-budati.jpeg').resize((50, 50))
-    linkedin_img = Image.open('images/linkedin.png').resize((50, 50))
+    github_img = Image.open('https://en.wikipedia.org/wiki/GitHub#/media/File:GitHub_Invertocat_Logo.svg').resize((50, 50))
+    portfolio_img = Image.open('images/varun-pfp.jpg').resize((50, 50))
+    linkedin_img = Image.open('images/varun-pfp.jpg').resize((50, 50))
 
     if col1.image(github_img):
         st.sidebar.markdown("[GitHub](https://github.com/varunbudati)")
