@@ -80,9 +80,6 @@ def plot_stock_data(data, ticker):
     return fig
 
 def main():
-    st.title('Stock Trading Dashboard')
-
-    # Sidebar for user input
     st.sidebar.header('User Input')
     tickers = st.sidebar.text_input('Enter stock tickers (comma-separated)', 'AAPL,GOOGL,MSFT').split(',')
     start_date = st.sidebar.date_input('Start Date', pd.to_datetime('2020-01-01'))
@@ -94,6 +91,11 @@ def main():
             st.header(f'Analysis for {ticker}')
 
             data = get_stock_data(ticker, start_date, end_date)
+            
+            if data.empty:
+                st.warning(f"No data available for {ticker}. Skipping analysis.")
+                continue
+
             data = calculate_indicators(data)
             data = generate_signals(data)
             data = implement_trading_strategy(data)
