@@ -112,7 +112,7 @@ def plot_stock_data(data, ticker, initial_investment):
     return fig
 
 def main():
-    st.title('Stock Trading Dashboard')
+    st.title('MACD Trading Strategy Visualizer')
 
     st.sidebar.header('User Input')
     tickers = st.sidebar.text_input('Enter stock tickers (comma-separated)', 'AAPL,GOOGL,MSFT').split(',')
