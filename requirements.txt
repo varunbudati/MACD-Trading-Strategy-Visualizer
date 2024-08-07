@@ -4,3 +4,4 @@ yfinance
 numpy
 ta
 plotly
+PIL
