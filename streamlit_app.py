@@ -115,7 +115,7 @@ def main():
 
     st.title('MACD Trading Strategy Visualizer')
 
-    col1, col2, col3 = st.columns([1,4,1])
+    col1, col2, col3 = st.sidebar.columns([1,4,1])
     with col1:
         if st.sidebar.button('Contact'):
             st.info('Contact: example@email.com')
