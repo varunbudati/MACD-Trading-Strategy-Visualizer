@@ -29,7 +29,7 @@ def generate_signals(data):
                            (data['MACD'].shift(1) >= data['MACD_Signal'].shift(1))).astype(int)
     return data
 
-def implement_trading_strategy(data, initial_capital=10000.0):
+def implement_trading_strategy(data, initial_capital):
     df = data.copy()
     df['Position'] = 0
     df['Trade'] = 0
@@ -61,11 +61,12 @@ def implement_trading_strategy(data, initial_capital=10000.0):
 
     return df
 
-def plot_stock_data(data, ticker):
+def plot_stock_data(data, ticker, initial_investment):
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1, subplot_titles=(f'{ticker} Stock Price', 'MACD'))
 
     # Plot stock price
     fig.add_trace(go.Scatter(x=data.index, y=data['Close'], name='Close Price'), row=1, col=1)
+    fig.add_trace(go.Scatter(x=data.index, y=[initial_investment]*len(data), name='Initial Investment', line=dict(color='green', dash='dash')), row=1, col=1)
     fig.add_trace(go.Scatter(x=data[data['Buy_Signal'] == 1].index, y=data[data['Buy_Signal'] == 1]['Close'], 
                              mode='markers', name='Buy Signal', marker=dict(color='green', symbol='triangle-up', size=10)), row=1, col=1)
     fig.add_trace(go.Scatter(x=data[data['Sell_Signal'] == 1].index, y=data[data['Sell_Signal'] == 1]['Close'], 
@@ -79,10 +80,15 @@ def plot_stock_data(data, ticker):
     return fig
 
 def main():
+    st.title('Stock Trading Dashboard')
+
     st.sidebar.header('User Input')
     tickers = st.sidebar.text_input('Enter stock tickers (comma-separated)', 'AAPL,GOOGL,MSFT').split(',')
     start_date = st.sidebar.date_input('Start Date', pd.to_datetime('2020-01-01'))
     end_date = st.sidebar.date_input('End Date', pd.to_datetime('2023-01-01'))
+    
+    # New input for initial investment
+    initial_investment = st.sidebar.number_input('Initial Investment ($)', min_value=1000, max_value=1000000, value=10000, step=1000)
 
     if st.sidebar.button('Analyze Stocks'):
         for ticker in tickers:
@@ -97,27 +103,29 @@ def main():
 
             data = calculate_indicators(data)
             data = generate_signals(data)
-            data = implement_trading_strategy(data)
+            data = implement_trading_strategy(data, initial_capital=initial_investment)
 
-            fig = plot_stock_data(data, ticker)
+            fig = plot_stock_data(data, ticker, initial_investment)
             st.plotly_chart(fig)
 
             # Display strategy performance
-
-            
-            initial_capital = 10000
             buy_hold_return = (data['Close'].iloc[-1] - data['Close'].iloc[0]) / data['Close'].iloc[0] * 100
             final_portfolio_value = data['Portfolio'].iloc[-1]
-            total_return = ((final_portfolio_value - initial_capital) / initial_capital) * 100
+            total_return = ((final_portfolio_value - initial_investment) / initial_investment) * 100
             
             st.subheader('Strategy Performance')
-            col1, col2 = st.columns(2)
-            col1.metric("Strategy Total Return", f"{total_return:.2f}%")
-            col2.metric("Buy and Hold Return", f"{buy_hold_return:.2f}%")
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Initial Investment", f"${initial_investment:,.2f}")
+            col2.metric("Strategy Total Return", f"{total_return:.2f}%")
+            col3.metric("Buy and Hold Return", f"{buy_hold_return:.2f}%")
 
             # Display recent data
             st.subheader('Recent Data')
             st.dataframe(data[['Close', 'MACD', 'MACD_Signal', 'RSI', 'Buy_Signal', 'Sell_Signal', 'Portfolio']].tail())
+
+            # Display current position
+            current_position = "Holding" if data['Position'].iloc[-1] == 1 else "Not Holding"
+            st.info(f"Current Position: {current_position}")
 
 if __name__ == '__main__':
     main()
