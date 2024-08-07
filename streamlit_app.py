@@ -189,7 +189,7 @@ def main():
     </svg>
     """
     with col3:
-        st.markdown(f'<a href="https://www.linkedin.com/in/varun-budati target="_blank" class="icon-button">{linkedin_icon}</a>', unsafe_allow_html=True)
+        st.markdown(f'<a href="https://www.linkedin.com/in/varun-budati" target="_blank" class="icon-button">{linkedin_icon}</a>', unsafe_allow_html=True)
 
 
 if __name__ == '__main__':
