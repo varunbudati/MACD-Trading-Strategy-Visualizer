@@ -112,13 +112,13 @@ def plot_stock_data(data, ticker, initial_investment):
     return fig
 
 def main():
-    col1, col2, col3 = st.columns([1,4,1])
-    with col1:
-        if st.button('Contact'):
-            st.info('Contact: example@email.com')
-            
+
     st.title('MACD Trading Strategy Visualizer')
 
+    col1, col2, col3 = st.columns([1,4,1])
+    with col1:
+        if st.sidebar.button('Contact'):
+            st.info('Contact: example@email.com')
     st.sidebar.header('User Input')
     tickers = st.sidebar.text_input('Enter stock tickers (comma-separated)', 'AAPL,GOOGL,MSFT').split(',')
     start_date = st.sidebar.date_input('Start Date', pd.to_datetime('2020-01-01'))
