@@ -112,7 +112,7 @@ def plot_stock_data(data, ticker, initial_investment):
     return fig
 
 def main():
-    st.title('Stock Trading Dashboard')
+    st.title(' MACD Trading Strategy Visualizer')
 
     # Sidebar
     st.sidebar.header('User Input')
