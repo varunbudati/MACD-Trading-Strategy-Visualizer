@@ -2,6 +2,8 @@
 
 This project is a web-based stock trading dashboard that implements a momentum trading strategy using technical indicators. It allows users to analyze stock data, visualize trading signals, and simulate portfolio performance.
 
+![image](https://github.com/user-attachments/assets/8240a953-6816-4cc2-8e57-7d78b72ec425)
+
 ## Features
 
 - Fetch historical stock data for multiple tickers
