@@ -115,16 +115,27 @@ def main():
 
     st.title('MACD Trading Strategy Visualizer')
 
-    col1, col2, col3 = st.sidebar.columns([1,4,1])
-    with col1:
-        if st.sidebar.header('Made By:'):
-            st.info('Contact: example@email.com')
+    
     st.sidebar.header('User Input')
     tickers = st.sidebar.text_input('Enter stock tickers (comma-separated)', 'AAPL,GOOGL,MSFT').split(',')
     start_date = st.sidebar.date_input('Start Date', pd.to_datetime('2020-01-01'))
     end_date = st.sidebar.date_input('End Date', pd.to_datetime('2023-01-01'))
     
     initial_investment = st.sidebar.number_input('Initial Investment ($)', min_value=1000, max_value=1000000, value=10000, step=1000)
+
+    st.sidebar.header('Made By:')
+    col1, col2, col3 = st.sidebar.columns(3)
+
+    github_img = Image.open('images/github.png').resize((50, 50))
+    portfolio_img = Image.open('https://varunbudati.github.io/assets/images/varun-budati.jpeg').resize((50, 50))
+    linkedin_img = Image.open('images/linkedin.png').resize((50, 50))
+
+    if col1.image(github_img):
+        st.sidebar.markdown("[GitHub](https://github.com/varunbudati)")
+    if col2.image(portfolio_img):
+        st.sidebar.markdown("[Portfolio](https://varunbudati.github.io/)")
+    if col3.image(linkedin_img):
+        st.sidebar.markdown("[LinkedIn](https://www.linkedin.com/in/varun-budati/)")
 
     if st.sidebar.button('Analyze Stocks'):
         for ticker in tickers:
