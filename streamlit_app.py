@@ -107,8 +107,6 @@ def main():
             
             initial_capital = 10000
             buy_hold_return = (data['Close'].iloc[-1] - data['Close'].iloc[0]) / data['Close'].iloc[0] * 100
-
-
             final_portfolio_value = data['Portfolio'].iloc[-1]
             total_return = ((final_portfolio_value - initial_capital) / initial_capital) * 100
             
