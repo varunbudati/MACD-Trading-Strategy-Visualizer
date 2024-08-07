@@ -4,4 +4,4 @@ yfinance
 numpy
 ta
 plotly
-PIL
+Image
