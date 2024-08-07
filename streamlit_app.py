@@ -11,7 +11,7 @@ def get_stock_data(ticker, start_date, end_date):
         # Disable progress bar
         stock_data = yf.download(ticker, start=start_date, end=end_date, progress=False)
         stock_data.fillna(method='ffill', inplace=True)
-        return stock_data
+        return stock_data[['Open', 'High', 'Low', 'Close']]  # Ensure we have all necessary columns
     except Exception as e:
         st.error(f"Error fetching data for {ticker}: {str(e)}")
         return pd.DataFrame() 
@@ -64,19 +64,45 @@ def implement_trading_strategy(data, initial_capital):
 def plot_stock_data(data, ticker, initial_investment):
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1, subplot_titles=(f'{ticker} Stock Price', 'MACD'))
 
-    # Plot stock price
-    fig.add_trace(go.Scatter(x=data.index, y=data['Close'], name='Close Price'), row=1, col=1)
-    fig.add_trace(go.Scatter(x=data.index, y=[initial_investment]*len(data), name='Initial Investment', line=dict(color='green', dash='dash')), row=1, col=1)
-    fig.add_trace(go.Scatter(x=data[data['Buy_Signal'] == 1].index, y=data[data['Buy_Signal'] == 1]['Close'], 
-                             mode='markers', name='Buy Signal', marker=dict(color='green', symbol='triangle-up', size=10)), row=1, col=1)
-    fig.add_trace(go.Scatter(x=data[data['Sell_Signal'] == 1].index, y=data[data['Sell_Signal'] == 1]['Close'], 
-                             mode='markers', name='Sell Signal', marker=dict(color='red', symbol='triangle-down', size=10)), row=1, col=1)
+    # Plot stock price as candlesticks
+    fig.add_trace(go.Candlestick(x=data.index,
+                                 open=data['Open'],
+                                 high=data['High'],
+                                 low=data['Low'],
+                                 close=data['Close'],
+                                 name='Price'),
+                  row=1, col=1)
+
+    # Add initial investment line
+    fig.add_trace(go.Scatter(x=data.index, y=[initial_investment]*len(data), 
+                             name='Initial Investment', 
+                             line=dict(color='green', dash='dash')), 
+                  row=1, col=1)
+
+    # Add buy and sell signals
+    fig.add_trace(go.Scatter(x=data[data['Buy_Signal'] == 1].index, 
+                             y=data[data['Buy_Signal'] == 1]['Low'],  # Place markers at the low price
+                             mode='markers', 
+                             name='Buy Signal', 
+                             marker=dict(color='green', symbol='triangle-up', size=10)),
+                  row=1, col=1)
+    fig.add_trace(go.Scatter(x=data[data['Sell_Signal'] == 1].index, 
+                             y=data[data['Sell_Signal'] == 1]['High'],  # Place markers at the high price
+                             mode='markers', 
+                             name='Sell Signal', 
+                             marker=dict(color='red', symbol='triangle-down', size=10)),
+                  row=1, col=1)
 
     # Plot MACD
     fig.add_trace(go.Scatter(x=data.index, y=data['MACD'], name='MACD'), row=2, col=1)
     fig.add_trace(go.Scatter(x=data.index, y=data['MACD_Signal'], name='Signal Line'), row=2, col=1)
 
-    fig.update_layout(height=600, width=800, title_text=f"{ticker} Stock Analysis")
+    # Update layout
+    fig.update_layout(height=800, width=1000, title_text=f"{ticker} Stock Analysis")
+    fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"])])  # Hide weekends
+    fig.update_yaxes(title_text="Price", row=1, col=1)
+    fig.update_yaxes(title_text="MACD", row=2, col=1)
+
     return fig
 
 def main():
