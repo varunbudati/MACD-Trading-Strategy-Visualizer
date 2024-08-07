@@ -6,6 +6,7 @@ import ta
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from PIL import Image
+from streamlit_extras.app_logo import add_logo
 
 def get_stock_data(ticker, start_date, end_date):
     try:
@@ -123,17 +124,23 @@ def main():
     initial_investment = st.sidebar.number_input('Initial Investment ($)', min_value=1000, max_value=1000000, value=10000, step=1000)
 
     # Add "Made By" section to sidebar with icon buttons
-    st.sidebar.header('Made By:')
+    st.sidebar.header('Contact Me!')
     col1, col2, col3 = st.sidebar.columns(3)
 
-    if col1.button('GitHub', key='github'):
-        st.sidebar.markdown("[GitHub](https://github.com/yourusername)")
+    with col1:
+        add_logo("https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png", height=50)
+        if st.button('GitHub'):
+            st.markdown("[GitHub](https://github.com/varunbudati/)")
     
-    if col2.button('Portfolio', key='portfolio'):
-        st.sidebar.markdown("[Portfolio](https://yourportfolio.com)")
+    with col2:
+        add_logo("images/varun.png", height=50)
+        if st.button('Portfolio'):
+            st.markdown("[Portfolio](https://varunbudati.github.io/)")
     
-    if col3.button('LinkedIn', key='linkedin'):
-        st.sidebar.markdown("[LinkedIn](https://www.linkedin.com/in/yourprofile)")
+    with col3:
+        add_logo("https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg", height=50)
+        if st.button('LinkedIn'):
+            st.markdown("[LinkedIn](https://www.linkedin.com/in/varun-budati)")
 
     if st.sidebar.button('Analyze Stocks'):
         for ticker in tickers:
