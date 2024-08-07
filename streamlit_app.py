@@ -7,9 +7,14 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 def get_stock_data(ticker, start_date, end_date):
-    stock_data = yf.download(ticker, start=start_date, end=end_date)
-    stock_data.fillna(method='ffill', inplace=True)
-    return stock_data
+    try:
+        # Disable progress bar
+        stock_data = yf.download(ticker, start=start_date, end=end_date, progress=False)
+        stock_data.fillna(method='ffill', inplace=True)
+        return stock_data
+    except Exception as e:
+        st.error(f"Error fetching data for {ticker}: {str(e)}")
+        return pd.DataFrame() 
 
 def calculate_indicators(data):
     data['MACD'] = ta.trend.macd(data['Close'])
