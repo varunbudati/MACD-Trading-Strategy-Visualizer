@@ -8,10 +8,9 @@ from plotly.subplots import make_subplots
 
 def get_stock_data(ticker, start_date, end_date):
     try:
-        # Disable progress bar
         stock_data = yf.download(ticker, start=start_date, end=end_date, progress=False)
         stock_data.fillna(method='ffill', inplace=True)
-        return stock_data[['Open', 'High', 'Low', 'Close']]  # Ensure we have all necessary columns
+        return stock_data[['Open', 'High', 'Low', 'Close']]
     except Exception as e:
         st.error(f"Error fetching data for {ticker}: {str(e)}")
         return pd.DataFrame() 
@@ -62,7 +61,9 @@ def implement_trading_strategy(data, initial_capital):
     return df
 
 def plot_stock_data(data, ticker, initial_investment):
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1, subplot_titles=(f'{ticker} Stock Price', 'MACD'))
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1, 
+                        subplot_titles=(f'{ticker} Stock Price', 'MACD'),
+                        specs=[[{"secondary_y": True}], [{"secondary_y": False}]])
 
     # Plot stock price as candlesticks
     fig.add_trace(go.Candlestick(x=data.index,
@@ -71,27 +72,27 @@ def plot_stock_data(data, ticker, initial_investment):
                                  low=data['Low'],
                                  close=data['Close'],
                                  name='Price'),
-                  row=1, col=1)
+                  row=1, col=1, secondary_y=False)
 
-    # Add initial investment line
+    # Add initial investment line on secondary y-axis
     fig.add_trace(go.Scatter(x=data.index, y=[initial_investment]*len(data), 
                              name='Initial Investment', 
                              line=dict(color='green', dash='dash')), 
-                  row=1, col=1)
+                  row=1, col=1, secondary_y=True)
 
     # Add buy and sell signals
     fig.add_trace(go.Scatter(x=data[data['Buy_Signal'] == 1].index, 
-                             y=data[data['Buy_Signal'] == 1]['Low'],  # Place markers at the low price
+                             y=data[data['Buy_Signal'] == 1]['Low'],
                              mode='markers', 
                              name='Buy Signal', 
                              marker=dict(color='green', symbol='triangle-up', size=10)),
-                  row=1, col=1)
+                  row=1, col=1, secondary_y=False)
     fig.add_trace(go.Scatter(x=data[data['Sell_Signal'] == 1].index, 
-                             y=data[data['Sell_Signal'] == 1]['High'],  # Place markers at the high price
+                             y=data[data['Sell_Signal'] == 1]['High'],
                              mode='markers', 
                              name='Sell Signal', 
                              marker=dict(color='red', symbol='triangle-down', size=10)),
-                  row=1, col=1)
+                  row=1, col=1, secondary_y=False)
 
     # Plot MACD
     fig.add_trace(go.Scatter(x=data.index, y=data['MACD'], name='MACD'), row=2, col=1)
@@ -100,8 +101,13 @@ def plot_stock_data(data, ticker, initial_investment):
     # Update layout
     fig.update_layout(height=800, width=1000, title_text=f"{ticker} Stock Analysis")
     fig.update_xaxes(rangebreaks=[dict(bounds=["sat", "mon"])])  # Hide weekends
-    fig.update_yaxes(title_text="Price", row=1, col=1)
+    fig.update_yaxes(title_text="Price ($)", row=1, col=1, secondary_y=False)
+    fig.update_yaxes(title_text="Investment ($)", row=1, col=1, secondary_y=True)
     fig.update_yaxes(title_text="MACD", row=2, col=1)
+
+    # Update the range of the price axis
+    price_range = data['Close'].max() - data['Close'].min()
+    fig.update_yaxes(range=[data['Close'].min() - price_range*0.1, data['Close'].max() + price_range*0.1], row=1, col=1, secondary_y=False)
 
     return fig
 
@@ -113,7 +119,6 @@ def main():
     start_date = st.sidebar.date_input('Start Date', pd.to_datetime('2020-01-01'))
     end_date = st.sidebar.date_input('End Date', pd.to_datetime('2023-01-01'))
     
-    # New input for initial investment
     initial_investment = st.sidebar.number_input('Initial Investment ($)', min_value=1000, max_value=1000000, value=10000, step=1000)
 
     if st.sidebar.button('Analyze Stocks'):
