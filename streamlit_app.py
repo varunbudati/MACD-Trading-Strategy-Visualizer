@@ -117,8 +117,7 @@ def main():
 
     col1, col2, col3 = st.sidebar.columns([1,4,1])
     with col1:
-        if st.sidebar.button('Contact'):
-            st.info('Contact: example@email.com')
+        if st.sidebar.header('Made By:'):
     st.sidebar.header('User Input')
     tickers = st.sidebar.text_input('Enter stock tickers (comma-separated)', 'AAPL,GOOGL,MSFT').split(',')
     start_date = st.sidebar.date_input('Start Date', pd.to_datetime('2020-01-01'))
