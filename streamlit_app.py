@@ -60,7 +60,6 @@ def implement_trading_strategy(data, initial_capital):
         df.loc[df.index[i], 'Portfolio'] = df['Cash'].iloc[i] + (df['Shares'].iloc[i] * df['Close'].iloc[i])
 
     return df
-
 def plot_stock_data(data, ticker, initial_investment):
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1, 
                         subplot_titles=(f'{ticker} Stock Price', 'MACD'),
@@ -95,9 +94,9 @@ def plot_stock_data(data, ticker, initial_investment):
                              marker=dict(color='red', symbol='triangle-down', size=10)),
                   row=1, col=1, secondary_y=False)
 
-    # Plot MACD
-    fig.add_trace(go.Scatter(x=data.index, y=data['MACD'], name='MACD'), row=2, col=1)
-    fig.add_trace(go.Scatter(x=data.index, y=data['MACD_Signal'], name='Signal Line'), row=2, col=1)
+    # Plot MACD with colors
+    fig.add_trace(go.Scatter(x=data.index, y=data['MACD'], name='MACD', line=dict(color='blue')), row=2, col=1)
+    fig.add_trace(go.Scatter(x=data.index, y=data['MACD_Signal'], name='Signal Line', line=dict(color='red')), row=2, col=1)
 
     # Update layout
     fig.update_layout(height=800, width=1000, title_text=f"{ticker} Stock Analysis")
@@ -123,21 +122,17 @@ def main():
     
     initial_investment = st.sidebar.number_input('Initial Investment ($)', min_value=1000, max_value=1000000, value=10000, step=1000)
 
-    # Add "Made By" section to sidebar
+    # Add "Made By" section to sidebar with icon buttons
     st.sidebar.header('Made By:')
     col1, col2, col3 = st.sidebar.columns(3)
 
-    # Load and resize images
-    github_img = Image.open('images/varun.png').resize((50, 50))
-    portfolio_img = Image.open('images/varun-pfp.jpg').resize((50, 50))
-    linkedin_img = Image.open('images/varun-pfp.jpg').resize((50, 50))
-
-    # Add buttons with images
-    if col1.image(github_img):
+    if col1.button('GitHub', key='github'):
         st.sidebar.markdown("[GitHub](https://github.com/yourusername)")
-    if col2.image(portfolio_img):
+    
+    if col2.button('Portfolio', key='portfolio'):
         st.sidebar.markdown("[Portfolio](https://yourportfolio.com)")
-    if col3.image(linkedin_img):
+    
+    if col3.button('LinkedIn', key='linkedin'):
         st.sidebar.markdown("[LinkedIn](https://www.linkedin.com/in/yourprofile)")
 
     if st.sidebar.button('Analyze Stocks'):
