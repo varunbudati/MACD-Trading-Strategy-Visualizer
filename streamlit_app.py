@@ -115,7 +115,7 @@ def main():
 
             # Display recent data
             st.subheader('Recent Data')
-            st.dataframe(data[['Close', 'MACD', 'MACD_Signal', 'RSI', 'Buy_Signal', 'Sell_Signal', 'Portfolio']].tail())
+            st.dataframe(data[['Close', 'MACD', 'MACD_Signal', 'RSI', 'Portfolio']].tail())
 
 if __name__ == '__main__':
     main()
