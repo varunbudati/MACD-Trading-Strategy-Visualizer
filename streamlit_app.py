@@ -57,7 +57,6 @@ def implement_trading_strategy(data, initial_capital=10000.0):
             df.loc[df.index[i], 'Shares'] = df['Shares'].iloc[i-1]
             df.loc[df.index[i], 'Cash'] = df['Cash'].iloc[i-1]
 
-        # Update portfolio value
         df.loc[df.index[i], 'Portfolio'] = df['Cash'].iloc[i] + (df['Shares'].iloc[i] * df['Close'].iloc[i])
 
     return df
@@ -104,10 +103,12 @@ def main():
             st.plotly_chart(fig)
 
             # Display strategy performance
+
+            # In your main function, replace the strategy performance calculation with:
             initial_capital = 10000
-            total_return = (data['Portfolio'].iloc[-1] - initial_capital) / initial_capital * 100
-            buy_hold_return = (data['Close'].iloc[-1] - data['Close'].iloc[0]) / data['Close'].iloc[0] * 100
-            
+            final_portfolio_value = data['Portfolio'].iloc[-1]
+            total_return = ((final_portfolio_value - initial_capital) / initial_capital) * 100
+
             st.subheader('Strategy Performance')
             col1, col2 = st.columns(2)
             col1.metric("Strategy Total Return", f"{total_return:.2f}%")
