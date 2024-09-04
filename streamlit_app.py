@@ -5,7 +5,6 @@ import numpy as np
 import ta
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from PIL import Image
 
 def get_stock_data(ticker, start_date, end_date):
     try:
