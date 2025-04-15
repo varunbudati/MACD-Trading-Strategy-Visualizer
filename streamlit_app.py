@@ -5,20 +5,42 @@ import numpy as np
 import ta
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from datetime import datetime
 
 def get_stock_data(ticker, start_date, end_date):
+    # Ensure that start_date is before end_date
+    if start_date > end_date:
+        st.warning(f"Start date ({start_date}) is after end date ({end_date}). Swapping dates.")
+        start_date, end_date = end_date, start_date
+    
     try:
         stock_data = yf.download(ticker, start=start_date, end=end_date, progress=False)
-        stock_data.fillna(method='ffill', inplace=True)
+        # Check if we got any data
+        if stock_data.empty:
+            st.warning(f"No data found for {ticker} between {start_date} and {end_date}")
+            return pd.DataFrame()
+        
+        # Use ffill() instead of deprecated fillna(method='ffill')
+        stock_data.ffill(inplace=True)
         return stock_data[['Open', 'High', 'Low', 'Close']]
     except Exception as e:
         st.error(f"Error fetching data for {ticker}: {str(e)}")
-        return pd.DataFrame() 
+        return pd.DataFrame()
 
 def calculate_indicators(data):
-    data['MACD'] = ta.trend.macd(data['Close'])
-    data['MACD_Signal'] = ta.trend.macd_signal(data['Close'])
-    data['RSI'] = ta.momentum.rsi(data['Close'])
+    # Ensure Close is a 1-dimensional Series
+    close_series = data['Close'].squeeze()
+    
+    # Check if it's properly a Series
+    if not isinstance(close_series, pd.Series):
+        # If it's not a Series, convert it to one
+        close_series = pd.Series(close_series, index=data.index)
+    
+    # Now calculate the indicators
+    data['MACD'] = ta.trend.macd(close_series)
+    data['MACD_Signal'] = ta.trend.macd_signal(close_series)
+    data['RSI'] = ta.momentum.rsi(close_series)
+    
     return data
 
 def generate_signals(data):
@@ -42,34 +64,96 @@ def implement_trading_strategy(data, initial_capital):
             position = 1
             df.loc[df.index[i], 'Position'] = 1
             df.loc[df.index[i], 'Trade'] = 1
-            shares_bought = df['Cash'].iloc[i-1] // df['Close'].iloc[i]
+            
+            # Extract values safely for calculation
+            cash_value = df['Cash'].iloc[i-1]
+            close_value = df['Close'].iloc[i]
+            
+            # Convert to float if Series
+            if isinstance(cash_value, pd.Series):
+                cash_value = float(cash_value.iloc[0])
+            if isinstance(close_value, pd.Series):
+                close_value = float(close_value.iloc[0])
+                
+            shares_bought = cash_value // close_value
             df.loc[df.index[i], 'Shares'] = shares_bought
-            df.loc[df.index[i], 'Cash'] = df['Cash'].iloc[i-1] - (shares_bought * df['Close'].iloc[i])
+            df.loc[df.index[i], 'Cash'] = cash_value - (shares_bought * close_value)
         elif df['Sell_Signal'].iloc[i] == 1 and position == 1:
             position = 0
             df.loc[df.index[i], 'Position'] = 0
             df.loc[df.index[i], 'Trade'] = -1
-            df.loc[df.index[i], 'Cash'] = df['Cash'].iloc[i-1] + (df['Shares'].iloc[i-1] * df['Close'].iloc[i])
+            
+            # Extract values safely for calculation
+            cash_value = df['Cash'].iloc[i-1]
+            shares_value = df['Shares'].iloc[i-1]
+            close_value = df['Close'].iloc[i]
+            
+            # Convert to float if Series
+            if isinstance(cash_value, pd.Series):
+                cash_value = float(cash_value.iloc[0])
+            if isinstance(shares_value, pd.Series):
+                shares_value = float(shares_value.iloc[0])
+            if isinstance(close_value, pd.Series):
+                close_value = float(close_value.iloc[0])
+                
+            df.loc[df.index[i], 'Cash'] = cash_value + (shares_value * close_value)
             df.loc[df.index[i], 'Shares'] = 0
         else:
             df.loc[df.index[i], 'Position'] = position
-            df.loc[df.index[i], 'Shares'] = df['Shares'].iloc[i-1]
-            df.loc[df.index[i], 'Cash'] = df['Cash'].iloc[i-1]
+            
+            # Extract values safely
+            shares_value = df['Shares'].iloc[i-1]
+            cash_value = df['Cash'].iloc[i-1]
+            
+            # Convert to float if Series
+            if isinstance(shares_value, pd.Series):
+                shares_value = float(shares_value.iloc[0])
+            if isinstance(cash_value, pd.Series):
+                cash_value = float(cash_value.iloc[0])
+                
+            df.loc[df.index[i], 'Shares'] = shares_value
+            df.loc[df.index[i], 'Cash'] = cash_value
 
-        df.loc[df.index[i], 'Portfolio'] = df['Cash'].iloc[i] + (df['Shares'].iloc[i] * df['Close'].iloc[i])
+        # Calculate portfolio value
+        cash_value = df['Cash'].iloc[i]
+        shares_value = df['Shares'].iloc[i]
+        close_value = df['Close'].iloc[i]
+        
+        # Convert to float if Series
+        if isinstance(cash_value, pd.Series):
+            cash_value = float(cash_value.iloc[0])
+        if isinstance(shares_value, pd.Series):
+            shares_value = float(shares_value.iloc[0])
+        if isinstance(close_value, pd.Series):
+            close_value = float(close_value.iloc[0])
+            
+        df.loc[df.index[i], 'Portfolio'] = cash_value + (shares_value * close_value)
 
     return df
+
 def plot_stock_data(data, ticker, initial_investment):
+    # Handle the case where a column might be a DataFrame instead of a Series
+    def ensure_series(column):
+        if isinstance(column, pd.DataFrame):
+            return column.squeeze()
+        return column
+    
+    # Apply to relevant columns
+    open_data = ensure_series(data['Open'])
+    high_data = ensure_series(data['High'])
+    low_data = ensure_series(data['Low'])
+    close_data = ensure_series(data['Close'])
+    
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1, 
                         subplot_titles=(f'{ticker} Stock Price', 'MACD'),
                         specs=[[{"secondary_y": True}], [{"secondary_y": False}]])
 
     # Plot stock price as candlesticks
     fig.add_trace(go.Candlestick(x=data.index,
-                                 open=data['Open'],
-                                 high=data['High'],
-                                 low=data['Low'],
-                                 close=data['Close'],
+                                 open=open_data,
+                                 high=high_data,
+                                 low=low_data,
+                                 close=close_data,
                                  name='Price'),
                   row=1, col=1, secondary_y=False)
 
@@ -79,23 +163,35 @@ def plot_stock_data(data, ticker, initial_investment):
                              line=dict(color='green', dash='dash')), 
                   row=1, col=1, secondary_y=True)
 
-    # Add buy and sell signals
-    fig.add_trace(go.Scatter(x=data[data['Buy_Signal'] == 1].index, 
-                             y=data[data['Buy_Signal'] == 1]['Low'],
-                             mode='markers', 
-                             name='Buy Signal', 
-                             marker=dict(color='green', symbol='triangle-up', size=10)),
-                  row=1, col=1, secondary_y=False)
-    fig.add_trace(go.Scatter(x=data[data['Sell_Signal'] == 1].index, 
-                             y=data[data['Sell_Signal'] == 1]['High'],
-                             mode='markers', 
-                             name='Sell Signal', 
-                             marker=dict(color='red', symbol='triangle-down', size=10)),
-                  row=1, col=1, secondary_y=False)
+    # Filter buy/sell signals
+    buy_signals = data[data['Buy_Signal'] == 1]
+    sell_signals = data[data['Sell_Signal'] == 1]
 
-    # Plot MACD with colors
-    fig.add_trace(go.Scatter(x=data.index, y=data['MACD'], name='MACD', line=dict(color='blue')), row=2, col=1)
-    fig.add_trace(go.Scatter(x=data.index, y=data['MACD_Signal'], name='Signal Line', line=dict(color='red')), row=2, col=1)
+    # Add buy and sell signals
+    if not buy_signals.empty:
+        buy_y_values = ensure_series(buy_signals['Low'])
+        fig.add_trace(go.Scatter(x=buy_signals.index, 
+                                y=buy_y_values,
+                                mode='markers', 
+                                name='Buy Signal', 
+                                marker=dict(color='green', symbol='triangle-up', size=10)),
+                    row=1, col=1, secondary_y=False)
+                    
+    if not sell_signals.empty:
+        sell_y_values = ensure_series(sell_signals['High'])
+        fig.add_trace(go.Scatter(x=sell_signals.index, 
+                                y=sell_y_values,
+                                mode='markers', 
+                                name='Sell Signal', 
+                                marker=dict(color='red', symbol='triangle-down', size=10)),
+                    row=1, col=1, secondary_y=False)
+
+    # Plot MACD with colors (ensure they're Series)
+    macd_data = ensure_series(data['MACD'])
+    signal_data = ensure_series(data['MACD_Signal'])
+    
+    fig.add_trace(go.Scatter(x=data.index, y=macd_data, name='MACD', line=dict(color='blue')), row=2, col=1)
+    fig.add_trace(go.Scatter(x=data.index, y=signal_data, name='Signal Line', line=dict(color='red')), row=2, col=1)
 
     # Update layout
     fig.update_layout(height=800, width=1000, title_text=f"{ticker} Stock Analysis")
@@ -105,13 +201,14 @@ def plot_stock_data(data, ticker, initial_investment):
     fig.update_yaxes(title_text="MACD", row=2, col=1)
 
     # Update the range of the price axis
-    price_range = data['Close'].max() - data['Close'].min()
-    fig.update_yaxes(range=[data['Close'].min() - price_range*0.1, data['Close'].max() + price_range*0.1], row=1, col=1, secondary_y=False)
+    close_data = ensure_series(data['Close'])
+    price_range = close_data.max() - close_data.min()
+    fig.update_yaxes(range=[close_data.min() - price_range*0.1, close_data.max() + price_range*0.1], row=1, col=1, secondary_y=False)
 
     return fig
 
 def main():
-    st.title(' MACD Trading Strategy Visualizer')
+    st.title('MACD Trading Strategy Visualizer')
 
     # Sidebar
     st.sidebar.header('User Input')
@@ -139,9 +236,24 @@ def main():
             fig = plot_stock_data(data, ticker, initial_investment)
             st.plotly_chart(fig)
 
+            # Ensure close_data is a Series
+            close_data = data['Close'].squeeze() if isinstance(data['Close'], pd.DataFrame) else data['Close']
+            portfolio_data = data['Portfolio'].squeeze() if isinstance(data['Portfolio'], pd.DataFrame) else data['Portfolio']
+            
+            # Handle potential Series values
+            first_close = close_data.iloc[0]
+            last_close = close_data.iloc[-1]
+            if isinstance(first_close, pd.Series):
+                first_close = float(first_close.iloc[0])
+            if isinstance(last_close, pd.Series):
+                last_close = float(last_close.iloc[0])
+                
+            final_portfolio_value = portfolio_data.iloc[-1]
+            if isinstance(final_portfolio_value, pd.Series):
+                final_portfolio_value = float(final_portfolio_value.iloc[0])
+                
             # Display strategy performance
-            buy_hold_return = (data['Close'].iloc[-1] - data['Close'].iloc[0]) / data['Close'].iloc[0] * 100
-            final_portfolio_value = data['Portfolio'].iloc[-1]
+            buy_hold_return = (last_close - first_close) / first_close * 100
             total_return = ((final_portfolio_value - initial_investment) / initial_investment) * 100
             
             st.subheader('Strategy Performance')
@@ -155,7 +267,8 @@ def main():
             st.dataframe(data[['Close', 'MACD', 'MACD_Signal', 'RSI', 'Buy_Signal', 'Sell_Signal', 'Portfolio']].tail())
 
             # Display current position
-            current_position = "Holding" if data['Position'].iloc[-1] == 1 else "Not Holding"
+            position_data = data['Position'].squeeze() if isinstance(data['Position'], pd.DataFrame) else data['Position']
+            current_position = "Holding" if position_data.iloc[-1] == 1 else "Not Holding"
             st.info(f"Current Position: {current_position}")
     
     
